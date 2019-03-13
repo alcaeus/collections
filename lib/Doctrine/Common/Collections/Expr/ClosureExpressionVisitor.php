@@ -15,6 +15,8 @@ use function strlen;
 use function strpos;
 use function strtoupper;
 use function substr;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
  * Walks an expression graph and turns it into a PHP closure.
@@ -24,6 +26,23 @@ use function substr;
  */
 class ClosureExpressionVisitor extends ExpressionVisitor
 {
+    /**
+     * @var PropertyAccessorInterface
+     */
+    private static $propertyAccessor;
+
+    private static function getPropertyAccessor() : PropertyAccessorInterface
+    {
+        if (self::$propertyAccessor !== null) {
+            return self::$propertyAccessor;
+        }
+
+        $builder = PropertyAccess::createPropertyAccessorBuilder();
+        $builder->enableMagicCall();
+
+        return self::$propertyAccessor = $builder->getPropertyAccessor();
+    }
+
     /**
      * Accesses the field of a given object. This field has to be public
      * directly or indirectly (through an accessor get*, is*, or a magic
@@ -36,6 +55,9 @@ class ClosureExpressionVisitor extends ExpressionVisitor
      */
     public static function getObjectFieldValue($object, $field)
     {
+        $accessor = self::getPropertyAccessor();
+        return $accessor->getValue($object, $field);
+
         if (is_array($object)) {
             return $object[$field];
         }

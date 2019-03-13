@@ -287,7 +287,7 @@ class TestObject
 
     public function __call(string $name, array $arguments)
     {
-        if ($name === 'getqux') {
+        if ($name === 'getQux') {
             return $this->qux;
         }
     }
